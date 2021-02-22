@@ -60,7 +60,7 @@ class Translator(object):
 
                 if detailed:
                     ret_source = data[0][2]
-                    ret_source = ret_source if ret_source else source
+                    ret_source = ret_source or source
 
                     ret_target = data[1][1]
 
@@ -70,7 +70,6 @@ class Translator(object):
                         'raw_resp' : resp,
                     }
 
-                    ret = []
                     if (len(resp) > 1):
                         # For the case where feminine and masculine versions of the translation are returned.
                         metadata['parsed_resp'] = [f"{i[0]}\n{i[2]}" for i in resp]
@@ -79,7 +78,7 @@ class Translator(object):
                         # metadata['parsed_resp'] = self.flattenList(resp[0][5])
                         metadata['parsed_resp'] = [[option for option in self.flattenList(sentence) if type(option) is str] for sentence in metadata['raw_resp'][0][5]]
                         # metadata['resp'] = metadata['parsed_resp'][0]
-                        metadata['resp'] = " ".join([options[0] for options in metadata['parsed_resp']])
+                        metadata['resp'] = " ".join(options[0] for options in metadata['parsed_resp'])
 
                     # metadata['resp'] = "\n\n".join(metadata['parsed_resp'])
 
