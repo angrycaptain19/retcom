@@ -19,9 +19,7 @@ def convertQImageToCV2(img):
     height = img.height()
 
     ptr = img.bits()
-    arr = np.array(ptr).reshape(height, width, 4)
-
-    return arr
+    return np.array(ptr).reshape(height, width, 4)
 
 _a = 0.073235
 _b = 0.176765
@@ -60,7 +58,7 @@ def fastInpaint(src, mask=None, kernel=None, maxIter=100):
     resInWithBorder = np.copy(inWithBorder[bSize:bSize+result.shape[0], bSize:bSize+result.shape[1]])
 
     # ch = result.shape[-1]
-    for itr in range(maxIter):
+    for _ in range(maxIter):
         inWithBorder = cv2.copyMakeBorder(result, bSize, bSize, bSize, bSize, cv2.BORDER_REPLICATE)
         for r in range(result.shape[1]):
             for c in range(result.shape[0]):
@@ -71,7 +69,7 @@ def fastInpaint(src, mask=None, kernel=None, maxIter=100):
                     result[c,r,0] = s[0]
                     result[c,r,1] = s[1]
                     result[c,r,2] = s[2]
-                    
+
         # cv2.imshow("Inpainting...", result)
         # cv2.waitKey(1)
 

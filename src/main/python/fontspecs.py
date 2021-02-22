@@ -56,8 +56,8 @@ def getTextDimensions(text, ptSize, fontSpec, dim=[0,0]):
         
     return dim
 
-HALF2FULLWIDTH = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
-FULL2HALFWIDTH = dict((i + 0xFEE0, i) for i in range(0x21, 0x7F))
+HALF2FULLWIDTH = {i: i + 0xFEE0 for i in range(0x21, 0x7F)}
+FULL2HALFWIDTH = {i + 0xFEE0: i for i in range(0x21, 0x7F)}
 
 def half2fullWidth(txt:str):
     return txt.translate(HALF2FULLWIDTH)

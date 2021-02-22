@@ -69,29 +69,29 @@ class RetComConfig(object):
         except OSError:
             self.json = {}
 
-        self.language = self.json.get('language') if self.json.get('language') else 'jpn_vert'
-        self.translationLanguage = self.json.get('translationLanguage') if self.json.get('translationLanguage') else 'en'
+        self.language = self.json.get('language') or 'jpn_vert'
+        self.translationLanguage = self.json.get('translationLanguage') or 'en'
         self.isVertical = self.json.get('isVertical') if (self.json.get('isVertical') is not None) else True
         self.doPrescan = self.json.get('doPrescan') if (self.json.get('doPrescan') is not None) else True
         self.fullWidth = self.json.get('fullWidth') if (self.json.get('fullWidth') is not None) else True
 
         self.changeCheckThreshold = int(self.json.get('changeCheckThreshold')) if self.json.get('changeCheckThreshold') else int(7e3)
 
-        self.fontPath = self.json.get('fontPath') if self.json.get('fontPath') else 'fonts'
-        self.font = self.json.get('font') if self.json.get('font') else 'GenEiAntiquePv5-M.ttf'
-        self.boxPath = self.json.get('boxPath') if self.json.get('boxPath') else 'box'
+        self.fontPath = self.json.get('fontPath') or 'fonts'
+        self.font = self.json.get('font') or 'GenEiAntiquePv5-M.ttf'
+        self.boxPath = self.json.get('boxPath') or 'box'
 
-        self.suspiciousAspectRatio = self.json.get('suspiciousAspectRatio') if self.json.get('suspiciousAspectRatio') else 2
-        self.scaleMultiplier = self.json.get('scaleMultiplier') if self.json.get('scaleMultiplier') else 0.1
-        self.fineScaleMultiplier = self.json.get('fineScaleMultiplier') if self.json.get('fineScaleMultiplier') else 0.05
+        self.suspiciousAspectRatio = self.json.get('suspiciousAspectRatio') or 2
+        self.scaleMultiplier = self.json.get('scaleMultiplier') or 0.1
+        self.fineScaleMultiplier = self.json.get('fineScaleMultiplier') or 0.05
 
-        self.nudgeAmount = self.json.get('nudgeAmount') if self.json.get('nudgeAmount') else 5
-        self.fineNudgeAmount = self.json.get('fineNudgeAmount') if self.json.get('fineNudgeAmount') else 1
+        self.nudgeAmount = self.json.get('nudgeAmount') or 5
+        self.fineNudgeAmount = self.json.get('fineNudgeAmount') or 1
 
-        self.collationString = self.json.get('collationString') if self.json.get('collationString') else ''
+        self.collationString = self.json.get('collationString') or ''
 
-        self.boundingBoxOpacity = self.json.get('boundingBoxOpacity') if self.json.get('boundingBoxOpacity') else 0.5
-        self.groupBoxOpacity = self.json.get('groupBoxOpacity') if self.json.get('groupBoxOpacity') else 0.35
+        self.boundingBoxOpacity = self.json.get('boundingBoxOpacity') or 0.5
+        self.groupBoxOpacity = self.json.get('groupBoxOpacity') or 0.35
 
         self.boundingBoxColor = QtGui.QColor(self.hex2int(self.json.get('colors').get('boundingBox'))) if self.json.get('colors').get('boundingBox') else 0xFF0000
         self.boundingBoxPattern = eval(f"QtCore.Qt.{self.json.get('boundingBoxPattern')}Pattern") if self.json.get('boundingBoxPattern') else QtCore.Qt.SolidPattern
@@ -103,7 +103,7 @@ class RetComConfig(object):
         self.groupBoxBrush    = QtGui.QBrush(self.groupBoxColor)
         self.groupBoxBrush.setStyle(self.groupBoxPattern)
 
-        self.groupBoxStrokeWidth = self.json.get('groupBoxStrokeWidth') if self.json.get('groupBoxStrokeWidth') else 5
+        self.groupBoxStrokeWidth = self.json.get('groupBoxStrokeWidth') or 5
         self.groupBoxPen = QtGui.QPen(self.groupBoxColor)
         self.groupBoxPen.setWidth(self.groupBoxStrokeWidth)
 
@@ -206,40 +206,34 @@ class RetCom(QtWidgets.QMainWindow):
                 options = sorted([f for f in z.namelist() if '__MACOSX' not in f])
 
                 choice, resp = QtWidgets.QInputDialog.getItem(None, 'Files in archive', 'Choose file:', options)
-                if choice:
-                    fsrc = z.open(choice)
-                    src = fsrc.read()
-                    fsrc.close()
-
-                    head, _ = os.path.split(path)
-                    dst = os.path.normpath(os.path.join(head, 'rctemp_' + choice))
-                    fdst = open(dst, 'wb')
-                    fdst.write(src)
-                    fdst.close()
-
-                    path = dst
-                else:
+                if not choice:
                     return
+                fsrc = z.open(choice)
+                src = fsrc.read()
+                fsrc.close()
+
+                head, _ = os.path.split(path)
+                dst = os.path.normpath(os.path.join(head, 'rctemp_' + choice))
+                with open(dst, 'wb') as fdst:
+                    fdst.write(src)
+                path = dst
             elif path.split('.')[-1].lower() in ['rar', 'cbr']:
                 z = rarfile.RarFile(path)
                 options = sorted([f for f in z.namelist() if '__MACOSX' not in f])
 
                 choice, resp = QtWidgets.QInputDialog.getItem(None, 'Files in archive', 'Choose file:', options)
-                if choice:
-                    fsrc = z.open(choice)
-                    src = fsrc.read()
-                    fsrc.close()
-
-                    head, _ = os.path.split(path)
-                    dst = os.path.normpath(os.path.join(head, 'rctemp_' + choice))
-                    fdst = open(dst, 'wb')
-                    fdst.write(src)
-                    fdst.close()
-
-                    path = dst
-                else:
+                if not choice:
                     return
-        
+
+                fsrc = z.open(choice)
+                src = fsrc.read()
+                fsrc.close()
+
+                head, _ = os.path.split(path)
+                dst = os.path.normpath(os.path.join(head, 'rctemp_' + choice))
+                with open(dst, 'wb') as fdst:
+                    fdst.write(src)
+                path = dst
             # path = '../jpn.GenEiAntiquePv5.jpg'
             lang = retcomconfig.language
             # lang='en'
@@ -255,8 +249,6 @@ class RetCom(QtWidgets.QMainWindow):
                 retcom.parseLSTMBox(runTesseract(path, retcomconfig.tessdataPath, lang=lang, relPath=retcomconfig.boxPath))
 
             retcom.show()
-        else:
-            pass
 
     def createUI(self):
         self.scene = QtWidgets.QGraphicsScene(self)
@@ -393,36 +385,26 @@ class RetCom(QtWidgets.QMainWindow):
         boxPath = os.path.normpath(os.path.join(os.path.split(self.imagePath)[0], self.retcomconfig.boxPath))
         if os.path.exists(boxPath):
             boxFile = os.path.normpath(os.path.join(boxPath, imageName) + '.py.box')
-            if os.path.exists(boxFile):
-                defaultPath = boxFile
-            else:
-                defaultPath = boxPath
+            defaultPath = boxFile if os.path.exists(boxFile) else boxPath
         else:
             defaultPath = imagePath
-        
+
         path, _ = QtWidgets.QFileDialog.getOpenFileName(parent=None, caption='Choose LSTMBox', dir=defaultPath, filter="Box files (*.box *.py.box)")
         if path != '':
             self.parseLSTMBox(path)
-        else:
-            pass
 
     def loadTXTEllEvent(self):
         imagePath, imageName = os.path.split(self.imagePath)
         boxPath = os.path.normpath(os.path.join(os.path.split(self.imagePath)[0], self.retcomconfig.boxPath))
         if os.path.exists(boxPath):
             boxFile = os.path.normpath(os.path.join(boxPath, imageName) + '.py.box')
-            if os.path.exists(boxFile):
-                defaultPath = boxFile
-            else:
-                defaultPath = boxPath
+            defaultPath = boxFile if os.path.exists(boxFile) else boxPath
         else:
             defaultPath = imagePath
-        
+
         path, _ = QtWidgets.QFileDialog.getOpenFileName(parent=None, caption='Choose TXTEll', dir=defaultPath, filter="Ellpse files (*.ell *.py.ell)")
         if path != '':
             self.parseTXTEll(path)
-        else:
-            pass
 
 
     def prescanEvent(self):
@@ -509,8 +491,6 @@ class RetCom(QtWidgets.QMainWindow):
         if path != '':
             image = self.makeCleanedImage()
             image.save(path)
-        else:
-            pass
 
     def saveScreenEvent(self):
         newFile = '.'.join(self.imagePath.split('.')[:-1]) + '.screen.' + self.imagePath.split('.')[-1]
@@ -521,7 +501,7 @@ class RetCom(QtWidgets.QMainWindow):
 
             for bell in self.bells:
                 bell.setSelected(True)
-            
+
             for bbox in self.bboxes:
                 bbox.setSelected(True)
 
@@ -536,8 +516,6 @@ class RetCom(QtWidgets.QMainWindow):
             image.save(path)
 
             self.unhideAll()
-        else:
-            pass
 
     def translatePageEvent(self):
         self.translationDialog = TranslationDialog(self)
@@ -753,10 +731,9 @@ class RetCom(QtWidgets.QMainWindow):
 
         if len(self.scene.selectedItems()) == 1:
             for item in self.scene.selectedItems():
-                if hasattr(item, 'isBbox'):
-                    if item.treeItem:
-                        self.bboxSettings.bbTree.scrollToItem(item.treeItem)
-                        self.bboxSettings.bbTree.setCurrentItem(item.treeItem)
+                if hasattr(item, 'isBbox') and item.treeItem:
+                    self.bboxSettings.bbTree.scrollToItem(item.treeItem)
+                    self.bboxSettings.bbTree.setCurrentItem(item.treeItem)
                     # self.simpleText.setHtml(f"<span style='background-color:white;color:black;'>{item.text}</span>")
                     # self.bboxSettings.bbText.setText(item.text)
 
@@ -821,23 +798,21 @@ class RetCom(QtWidgets.QMainWindow):
     def removeSelectedFromGroup(self):
         selectedItems = self.scene.selectedItems()
         for item in selectedItems:
-            if hasattr(item, 'isBbox'):
-                if item.group:
-                    group = item.group
-                    item.group = None
-                    group.items.remove(item)
-                    group.updateShape()
+            if hasattr(item, 'isBbox') and item.group:
+                group = item.group
+                item.group = None
+                group.items.remove(item)
+                group.updateShape()
 
-                    if len(group.items) == 0:
-                        group.disband()
+                if len(group.items) == 0:
+                    group.disband()
 
 
     def updateGroupBoundingRectSelected(self):
         selectedItems = self.scene.selectedItems()
         for item in selectedItems:
-            if hasattr(item, 'isBbox'):
-                if item.group:
-                    item.group.updateShape()
+            if hasattr(item, 'isBbox') and item.group:
+                item.group.updateShape()
 
     def convertToOutline(self, img, x=0, y=0):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -1002,8 +977,8 @@ class RetCom(QtWidgets.QMainWindow):
         for item in selectedItems:
             if hasattr(item, 'isBell') or hasattr(item, 'isBbox') or hasattr(item, 'isBboxGroup'):
                 item.hide()
-                if hasattr(item, 'isBbox') and item.group:
-                    item.group.hide()
+            if hasattr(item, 'isBbox') and item.group:
+                item.group.hide()
 
     def hideAll(self):
         for item in self.scene.items():
@@ -1244,8 +1219,6 @@ class RetCom(QtWidgets.QMainWindow):
                     os.remove(self.imagePath)
 
                 event.accept()
-            elif ret == QtWidgets.QMessageBox.Cancel:
-                pass
         else:
             if (QtWidgets.QMessageBox.Yes == QtWidgets.QMessageBox.question(self, "RetCom | Close confirmation", "Are you sure you want to close this window?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)):
                 if self.retcomconfig.removeScanImage and ('rctemp_' in self.imagePath):
@@ -1324,14 +1297,13 @@ class BoundingBox(QtWidgets.QGraphicsRectItem):
         selectedItems = self.parent.scene.selectedItems()
         if len(selectedItems) > 1:
             for item in self.parent.scene.items():
-                if hasattr(item, 'isBbox'):
-                    if item in selectedItems:
-                        self.parent.scene.removeItem(item)
-                        self.parent.bboxes.remove(item)
-                        if item.group:
-                            group = item.group
-                            item.group.remove(item)
-                            group.updateShape()
+                if hasattr(item, 'isBbox') and item in selectedItems:
+                    self.parent.scene.removeItem(item)
+                    self.parent.bboxes.remove(item)
+                    if item.group:
+                        group = item.group
+                        item.group.remove(item)
+                        group.updateShape()
 
     def restoreSelected(self):
         self.setPos(self.origX, self.origY)
@@ -1341,11 +1313,10 @@ class BoundingBox(QtWidgets.QGraphicsRectItem):
         selectedItems = self.parent.scene.selectedItems()
         if len(selectedItems) > 1:
             for item in self.parent.scene.items():
-                if hasattr(item, 'isBbox'):
-                    if item in selectedItems:
-                        item.setPos(item.origX, item.origY)
-                        item.updateContent(item.origText)
-                        item.updateFill()
+                if hasattr(item, 'isBbox') and item in selectedItems:
+                    item.setPos(item.origX, item.origY)
+                    item.updateContent(item.origText)
+                    item.updateFill()
 
 
     def mousePressEvent(self, event):
